@@ -1,1006 +1,146 @@
 <!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maintenance System - Permintaan Perbaikan</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
-
-        :root {
-            --primary-color: #0ea5e9;
-            --primary-dark: #0284c7;
-            --secondary-color: #e11d48;
-            --bg-body: #f1f5f9;
-            --bg-card: #ffffff;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --border-color: #e2e8f0;
-            --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
-            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
-            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
-            --radius-md: 12px;
-            --radius-lg: 20px;
-        }
-
-        /* --- GLOBAL STYLES --- */
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: var(--bg-body);
-            background-image: 
-                radial-gradient(at 0% 0%, hsla(253,16%,7%,0.05) 0, transparent 50%), 
-                radial-gradient(at 50% 0%, hsla(225,39%,30%,0.05) 0, transparent 50%), 
-                radial-gradient(at 100% 0%, hsla(339,49%,30%,0.05) 0, transparent 50%);
-            color: var(--text-main);
-            margin: 0;
-            padding: 20px;
-            min-height: 100vh;
-        }
-
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        
-        /* --- AREA LOGIN --- */
-        #login-screen {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, rgba(14, 165, 233, 0.9), rgba(2, 132, 199, 0.9));
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            animation: fadeIn 0.5s ease-out;
-        }
-        
-        .login-box {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 40px;
-            border-radius: var(--radius-lg);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            text-align: center;
-            width: 400px;
-            max-width: 90%;
-            box-sizing: border-box;
-            border-top: 6px solid var(--secondary-color);
-            transform: translateY(0);
-            transition: all 0.3s ease;
-        }
-
-        .login-box:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.3);
-        }
-
-        .login-box img { max-width: 250px; margin-bottom: 25px; drop-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .login-box h3 { margin-top: 0; margin-bottom: 25px; color: var(--text-main); font-size: 1.6em; font-weight: 800; letter-spacing: -0.5px; }
-        
-        /* --- MAIN CONTAINER --- */
-        .container {
-            max-width: 1050px;
-            margin: 0 auto;
-            background: var(--bg-card);
-            padding: 0;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-lg);
-            display: none; 
-            overflow: hidden;
-            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        
-        .header-app {
-            background: #ffffff;
-            padding: 25px 35px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        
-        .header-logo { display: flex; align-items: center; gap: 20px; }
-        .header-logo img { max-width: 200px; }
-        .header-title-text h2 { margin: 0; color: var(--text-main); font-weight: 800; font-size: 1.5em; letter-spacing: -0.5px; }
-        .header-title-text p { margin: 4px 0 0 0; color: var(--primary-color); font-size: 0.95em; font-weight: 600; }
-        
-        .user-badge {
-            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
-            padding: 10px 20px;
-            border-radius: 30px;
-            font-size: 0.85em;
-            font-weight: 700;
-            color: var(--primary-dark);
-            border: 1px solid #bae6fd;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .main-content { padding: 35px; background: #fafafa; }
-        
-        /* TABS MODERN */
-        .tabs { 
-            display: flex; flex-wrap: wrap; margin-bottom: 30px; gap: 10px; 
-            background: #fff; padding: 10px; border-radius: var(--radius-md); box-shadow: var(--shadow-sm);
-        }
-        .tab {
-            padding: 12px 20px; cursor: pointer;
-            background: transparent;
-            border-radius: 8px;
-            transition: all 0.3s ease; font-weight: 700; color: var(--text-muted);
-            border: none;
-            display: flex; align-items: center; gap: 8px;
-        }
-        .tab:hover { background: #f1f5f9; color: var(--primary-color); }
-        .tab.active {
-            background: var(--primary-color); color: #fff;
-            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
-        }
-        .tab-logout {
-            margin-left: auto; background: #fff1f2 !important; color: var(--secondary-color) !important;
-        }
-        .tab-logout:hover { background: #ffe4e6 !important; transform: scale(1.05); }
-        
-        .form-section { display: none; background: #fff; padding: 30px; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); animation: fadeIn 0.4s ease-in-out; }
-        .form-section.active { display: block; }
-        
-        .section-title { font-size: 1.4em; color: var(--text-main); margin-top: 0; margin-bottom: 8px; font-weight: 800; letter-spacing: -0.5px; }
-        .section-desc { font-size: 0.95em; color: var(--text-muted); margin-bottom: 25px; line-height: 1.5; }
-
-        /* FORM ELEMENTS */
-        .form-group { margin-bottom: 20px; text-align: left; }
-        label { display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.9em; color: var(--text-main); }
-        input, select, textarea {
-            width: 100%; padding: 14px 16px;
-            border: 1px solid #cbd5e1; border-radius: 10px;
-            box-sizing: border-box; background: #f8fafc; font-family: inherit; font-size: 0.95em; color: var(--text-main);
-            transition: all 0.3s ease;
-        }
-        input:focus, select:focus, textarea:focus {
-            outline: none; border-color: var(--primary-color); background: #fff;
-            box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15);
-        }
-        input[readonly] { background-color: #e2e8f0; cursor: not-allowed; font-weight: 600; color: var(--text-muted); border-style: dashed; }
-        
-        /* BUTTONS */
-        button {
-            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-            color: white; border: none; padding: 16px 24px;
-            border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 1em; letter-spacing: 0.5px;
-            transition: all 0.3s ease;
-            display: flex; justify-content: center; align-items: center; gap: 8px;
-            box-shadow: 0 4px 6px rgba(14, 165, 233, 0.2);
-        }
-        button:hover { background: linear-gradient(135deg, var(--primary-dark), #0369a1); transform: translateY(-2px); box-shadow: 0 8px 15px rgba(14, 165, 233, 0.3); }
-        button:active { transform: translateY(0); }
-        
-        .btn-full { width: 100%; margin-top: 20px; font-size: 1.1em; }
-        .btn-print { background: #10b981; padding: 10px 18px; font-size: 0.85em; border-radius: 8px; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2); }
-        .btn-print:hover { background: #059669; box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3); }
-        .btn-process { background: var(--primary-color); }
-        
-        .row { display: flex; flex-wrap: wrap; gap: 24px; }
-        .col { flex: 1; min-width: 240px; }
-        
-        /* TABLE STATUS MODERN */
-        .table-wrapper { overflow-x: auto; background: #fff; border: 1px solid var(--border-color); border-radius: 12px; box-shadow: var(--shadow-sm); }
-        table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.9em; }
-        th, td { padding: 16px; border-bottom: 1px solid var(--border-color); text-align: left; vertical-align: middle; }
-        th { background: #f8fafc; color: var(--text-muted); font-weight: 800; text-transform: uppercase; font-size: 0.8em; letter-spacing: 0.5px; }
-        tbody tr { transition: all 0.2s ease; }
-        tbody tr:hover { background-color: #f1f5f9; transform: scale(1.002); }
-        tbody tr:last-child td { border-bottom: none; }
-        
-        /* BADGES */
-        .badge { padding: 6px 12px; border-radius: 20px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; font-size: 0.85em; letter-spacing: 0.2px;}
-        .badge-pending { background: #fef3c7; color: #b45309; border: 1px solid #fde68a;}
-        .badge-progress { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;}
-        .badge-selesai { background: #dcfce7; color: #047857; border: 1px solid #a7f3d0;}
-
-        .data-otomatis-box {
-            background: linear-gradient(to right, #f8fafc, #ffffff); padding: 25px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 25px;
-            border-left: 5px solid var(--primary-color); box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
-        }
-
-        /* ANIMATIONS */
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* LOADING SPINNER */
-        .spinner {
-            border: 4px solid rgba(14, 165, 233, 0.2);
-            border-left-color: var(--primary-color);
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-            vertical-align: middle;
-            margin-right: 10px;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* --- AREA PRINT KHUSUS --- */
-        #print-area { display: none; }
-        @media print {
-            body * { visibility: hidden; }
-            body { background: #fff; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .container, #login-screen { display: none !important; }
-            #print-area, #print-area * { visibility: visible; }
-            #print-area { 
-                display: block; position: absolute; left: 0; top: 0; 
-                width: 100%; padding: 15mm; color: #000; font-family: 'Times New Roman', Times, serif;
-                box-sizing: border-box;
-            }
-            
-            /* Print ISO Header */
-            .iso-header-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
-            .iso-header-table td { border: 2px solid #000; padding: 10px; vertical-align: middle; }
-            .iso-logo { max-width: 200px; }
-            .iso-title { font-size: 18px; font-weight: bold; text-align: center; color: #000; margin:0; text-transform: uppercase; }
-            .iso-subtitle { font-size: 14px; text-align: center; font-weight: bold; margin: 5px 0 0 0; }
-            .iso-meta { font-size: 12px; font-weight: bold; line-height: 1.5; }
-            
-            /* Print Content Tables */
-            .print-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 12px; }
-            .print-table td, .print-table th { border: 1px solid #000; padding: 6px 8px; vertical-align: top; }
-            .print-title { background: #e0e0e0 !important; font-weight: bold; font-size: 13px; text-transform: uppercase; }
-            .col-label { font-weight: bold; width: 20%; background: #f9f9f9 !important; }
-            .col-value { width: 30%; }
-
-            /* Signatures Table */
-            .sig-table { width: 100%; border-collapse: collapse; margin-top: 10px; text-align: center; font-size: 12px; }
-            .sig-table th, .sig-table td { border: 1px solid #000; padding: 5px; width: 25%; }
-            .sig-table th { background: #e0e0e0 !important; font-weight: bold; padding: 8px; }
-            .qr-box { height: 95px; display: flex; align-items: center; justify-content: center; margin: 5px auto; flex-direction: column;}
-            .qr-box img { max-height: 60px; max-width: 60px; margin: 2px 0;}
-            .sig-name { font-weight: bold; text-decoration: underline; margin-bottom: 2px; }
-
-            /* Digital Sign Anti Pemalsuan Styles */
-            .digital-sign {
-                display: inline-block;
-                padding: 4px;
-                background-image: repeating-linear-gradient(45deg, rgba(14, 165, 233, 0.08) 0, rgba(14, 165, 233, 0.08) 2px, transparent 2px, transparent 4px);
-                border: 1px dashed #0284c7;
-                border-radius: 4px;
-                text-align: center;
-            }
-            .ds-text {
-                font-size: 7px;
-                font-weight: bold;
-                color: #0284c7;
-                text-transform: uppercase;
-                letter-spacing: 0.2px;
-            }
-            .ds-auth {
-                font-size: 7px;
-                color: #475569;
-                font-family: monospace;
-                font-weight: bold;
-            }
-            .pending-sign {
-                color: #ef4444;
-                font-weight: bold;
-                font-size: 10px;
-                font-style: italic;
-            }
-
-            /* Footer */
-            .print-footer { margin-top: 15px; font-size: 10px; font-style: italic; border-top: 1px solid #000; padding-top: 5px; display: flex; justify-content: space-between; }
-        }
-
-    </style>
-</head>
-<body>
-
-<div id="login-screen">
-    <div class="login-box">
-        <img id="login-logo" src="Murinda Logo.png" alt="Logo PT MSB" onerror="this.src=''">
-        <h3>Permintaan Perbaikan</h3>
-        <div class="form-group">
-            <select id="login-role">
-                <option value="Production">🏭 Production</option>
-                <option value="Quality Control">🔬 Quality Control</option>
-                <option value="Warehouse">📦 Warehouse</option>
-                <option value="Maintenance">🔧 Tim Maintenance</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <input type="password" id="login-password" placeholder="Masukkan Password">
-        </div>
-        <button class="btn-full" onclick="handleLogin()">Masuk Sistem Maintenance ➔</button>
-    </div>
-</div>
-
-<div class="container" id="main-app">
-    <div class="header-app">
-        <div class="header-logo">
-            <img id="header-logo-img" src="Murinda Logo.png" alt="Logo PT MSB" onerror="this.src=''">
-            <div class="header-title-text">
-                <h2>PT MURINDA SENTRA BAJA</h2>
-                <p>E-Form Work Order Perbaikan Mesin & Aset</p>
-            </div>
-        </div>
-        <div class="user-badge" id="user-info">Login as: -</div>
-    </div>
-
-    <div class="main-content">
-        <div class="tabs">
-            <button class="tab" id="tab-status" onclick="switchTab('status')">📋 Daftar Permintaan Perbaikan</button>
-            <button class="tab" id="tab-permintaan" onclick="switchTab('permintaan')">📝 Form Permintaan Perbaikan (User)</button>
-            <button class="tab" id="tab-wo" onclick="switchTab('workorder')">🔧Daftar Permintaan Perbaikan(Mnt)</button>
-            <button class="tab tab-logout" onclick="location.reload()">🚪 Logout</button>
-        </div>
-
-        <div id="section-status" class="form-section">
-            <h3 class="section-title">Daftar Permintaan & Status</h3>
-            <p class="section-desc">Daftar ini memuat permohonan yang masuk sesuai departemen Anda. Klik <strong>Cetak</strong> untuk mendownload Dokumen Resmi</p>
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID WO</th>
-                            <th>Tanggal Request</th>
-                            <th>Nama Alat / Aset</th>
-                            <th>Pelapor (Dept)</th>
-                            <th>Status Perbaikan</th>
-                            <th style="text-align:center;">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody id="table-body-status">
-                        <tr><td colspan="6" style="text-align: center; padding: 40px; color:var(--text-muted);"><div class="spinner"></div> Memuat data dari server...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div id="form-permintaan" class="form-section">
-            <h3 class="section-title">Form Permintaan Perbaikan</h3>
-            <p class="section-desc">Silakan lengkapi detail kerusakan aset untuk dilaporkan ke tim Maintenance.</p>
-            
-            <form onsubmit="submitData(event, 'Permintaan')">
-                <input type="hidden" name="formType" value="Permintaan">
-                
-                <div class="row">
-                    <div class="col form-group">
-                        <label>ID WO / No. Order (Auto)</label>
-                        <input type="text" name="id_wo" id="id_wo_permintaan" required readonly placeholder="Memuat ID...">
-                    </div>
-                    <div class="col form-group">
-                        <label>Tanggal Permintaan</label>
-                        <input type="date" name="tanggal" required>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col form-group">
-                        <label>ID Alat / Inventaris</label>
-                        <input type="text" name="id_aset" required placeholder="Contoh: MC-001">
-                    </div>
-                    <div class="col form-group">
-                        <label>Nama Alat / Mesin</label>
-                        <input type="text" name="nama_aset" required placeholder="Contoh: Mesin Bending">
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col form-group">
-                        <label>Lokasi Aset</label>
-                        <input type="text" name="lokasi" required placeholder="Contoh: Area Produksi 1">
-                    </div>
-                    <div class="col form-group">
-                        <label>Pengguna (Departemen)</label>
-                        <input type="text" name="pengguna" id="pengguna_dept" required readonly>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>Jenis Kerusakan Utama</label>
-                    <select name="jenis_kerusakan" required>
-                        <option value="">-- Pilih Jenis Kerusakan --</option>
-                        <option value="Elektrikal">⚡ Elektrikal (Listrik, Sensor, Panel)</option>
-                        <option value="Mekanikal">⚙️ Mekanikal (Gear, Bearing, Patah)</option>
-                        <option value="Pneumatik">💨 Pneumatik (Angin, Kompresor)</option>
-                        <option value="Hidrolik">🛢️ Hidrolik (Oli, Pompa, Silinder)</option>
-                        <option value="Lainnya">📝 Lainnya / Kombinasi</option>
-                    </select>
-                </div>
-
-                <div class="row">
-                    <div class="col form-group">
-                        <label>Dibuat Oleh (Nama Operator/Pelapor)</label>
-                        <input type="text" name="dibuat_oleh" placeholder="Nama Lengkap Pembuat" required>
-                    </div>
-                    <div class="col form-group">
-                        <label>Diperiksa Oleh (Spv/Coordinator)</label>
-                        <input type="text" name="diperiksa_oleh" placeholder="Otomatis By Sistem" readonly title="Akan digenerate oleh sistem di form cetak">
-                    </div>
-                    <div class="col form-group">
-                        <label>Disetujui Oleh (Manager)</label>
-                        <input type="text" name="disetujui_oleh" placeholder="Otomatis By Sistem" readonly title="Akan digenerate oleh sistem di form cetak">
-                    </div>
-                </div>
-
-                <button type="submit" class="btn-full">Kirim Permintaan Perbaikan 🚀</button>
-                <div id="loading-Permintaan" style="display:none; text-align:center; margin-top:20px; font-weight:700; color: var(--primary-color);">
-                    <div class="spinner"></div> Menyimpan Data ke Database...
-                </div>
-            </form>
-        </div>
-
-        <div id="form-workorder" class="form-section">
-            <h3 class="section-title">Laporan Eksekusi Work Order</h3>
-            <p class="section-desc">Diisi oleh Tim Maintenance setelah melakukan perbaikan.</p>
-            
-            <form onsubmit="submitData(event, 'Work Order')">
-                <input type="hidden" name="formType" value="Work Order">
-                
-                <div class="row">
-                    <div class="col form-group">
-                        <label>Pilih ID WO (Permintaan Masuk)</label>
-                        <select name="id_wo" id="wo-dropdown" required>
-                            <option value="">-- Memuat Data ID WO... --</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="data-otomatis-box">
-                    <p style="margin: 0 0 15px 0; font-size: 0.85em; color: var(--primary-color); font-weight:800; letter-spacing: 0.5px;">DATA OTOMATIS DARI PERMINTAAN:</p>
-                    <div class="row">
-                        <div class="col form-group"><label>ID Alat</label><input type="text" name="id_aset" id="wo_id_aset" readonly></div>
-                        <div class="col form-group"><label>Nama Alat</label><input type="text" name="nama_aset" id="wo_nama_aset" readonly></div>
-                    </div>
-                    <div class="row">
-                        <div class="col form-group"><label>Lokasi</label><input type="text" name="lokasi" id="wo_lokasi" readonly></div>
-                        <div class="col form-group"><label>Pengguna (Dept)</label><input type="text" name="pengguna" id="wo_pengguna" readonly></div>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>Akar Penyebab Kerusakan (Root Cause)</label>
-                    <select name="penyebab_kerusakan">
-                        <option value="">-- Pilih Penyebab --</option>
-                        <option value="Faktor Usia/Aus">Faktor Usia / Aus Normal</option>
-                        <option value="Kurang Maintenance">Kurang Preventive Maintenance</option>
-                        <option value="Kesalahan Operasional">Kesalahan Operasional / Human Error</option>
-                        <option value="Accident">Kecelakaan Kerja / Accident</option>
-                        <option value="Lainnya">Lainnya / Tidak Diketahui</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>Deskripsi Pekerjaan & Sparepart yang diganti</label>
-                    <textarea name="deskripsi_pekerjaan" rows="3" placeholder="Jelaskan secara detail tindakan yang dilakukan..."></textarea>
-                </div>
-
-                <div class="row">
-                    <div class="col form-group">
-                        <label>Tanggal & Waktu Mulai Pengerjaan</label>
-                        <input type="datetime-local" name="tanggal_mulai">
-                    </div>
-                    <div class="col form-group">
-                        <label>Tanggal & Waktu Selesai Pengerjaan</label>
-                        <input type="datetime-local" name="tanggal_selesai">
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col form-group">
-                        <label>Nama Teknisi Pelaksana</label>
-                        <input type="text" name="teknisi" required placeholder="Nama Teknisi Utama">
-                    </div>
-                    <div class="col form-group">
-                        <label>Status Eksekusi WO</label>
-                        <select name="status_wo" required>
-                            <option value="In Progress">Sedang Dikerjakan (In Progress)</option>
-                            <option value="Menunggu Sparepart">Menunggu Sparepart</option>
-                            <option value="Selesai">Selesai (Close)</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>Catatan Perbaikan / Saran Pencegahan (Preventive)</label>
-                    <textarea name="catatan_perbaikan" rows="2" placeholder="Saran untuk operator agar tidak terulang kembali..."></textarea>
-                </div>
-
-                <button type="submit" class="btn-full">Simpan / Update Laporan WO ✔️</button>
-                <div id="loading-Work Order" style="display:none; text-align:center; margin-top:20px; font-weight:700; color: var(--primary-color);">
-                    <div class="spinner"></div> Menyimpan Laporan Maintenance...
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<div id="print-area"></div>
-
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MSB Maintenance Portal</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,sans-serif;color:#1e293b;background:linear-gradient(135deg,#e0f2fe,#ede9fe 50%,#fce7f3) fixed;min-height:100vh}
+header{position:sticky;top:0;z-index:5;display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:12px 20px;background:rgba(255,255,255,.65);backdrop-filter:blur(16px);border-bottom:1px solid #fff}
+header b{font-size:18px;color:#4338ca}header a{color:inherit;text-decoration:none}.sp{flex:1}
+main{max-width:1000px;margin:20px auto;padding:0 16px}
+.card,.tile,dialog{background:rgba(255,255,255,.7);backdrop-filter:blur(14px);border:1px solid #fff;border-radius:18px;box-shadow:0 8px 30px rgba(99,102,241,.12);padding:20px;margin-bottom:16px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.tile{text-decoration:none;color:inherit;transition:.2s;margin:0}.tile:hover{transform:translateY(-4px)}.tile i{font-size:28px;color:#6366f1}.tile h3{margin:10px 0 4px}
+form{display:grid;grid-template-columns:1fr 1fr;gap:12px}label{display:flex;flex-direction:column;font-size:13px;font-weight:600;gap:4px}label.w,form .row,form>h3,form>p,form>.btn{grid-column:1/-1}
+input,select,textarea{padding:10px;border:1px solid #cbd5e1;border-radius:10px;font:inherit;background:#fff}input[readonly]{background:#f1f5f9}
+.btn{display:inline-block;padding:11px 20px;border:0;border-radius:12px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-weight:600;cursor:pointer;text-decoration:none;text-align:center}.btn.g{background:#e2e8f0;color:#334155}
+.mut{color:#64748b;font-size:13px}.no{font-size:26px;font-weight:700;color:#4338ca;margin:8px 0}.ok{border-left:6px solid #22c55e}
+.bd{padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600;background:#e0e7ff;color:#3730a3}.bd.Selesai{background:#dcfce7;color:#166534}.bd.Ditolak{background:#fee2e2;color:#991b1b}
+.st{display:flex;gap:4px;margin:12px 0;flex-wrap:wrap}.st span{flex:1;min-width:70px;text-align:center;font-size:11px;padding:6px 2px;border-radius:8px;background:#e2e8f0;color:#64748b}.st span.d{background:#6366f1;color:#fff}
+.lg{font-size:12px;color:#475569;border-left:2px solid #c7d2fe;margin:8px 0 0 6px;padding-left:10px}.lg div{margin:3px 0}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px;text-align:left;border-bottom:1px solid #e2e8f0}.sc{overflow-x:auto}
+dialog{max-width:620px;width:94%}dialog::backdrop{background:rgba(15,23,42,.4)}.row{display:flex;gap:10px}
+@media(max-width:600px){form{grid-template-columns:1fr}}
+</style><link rel=icon href="MSB_Logo.png"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel=stylesheet><style>
+:root{--p:#4f46e5;--p2:#7c3aed;--ink:#0f172a;--mut:#64748b}
+body{font-family:Inter,system-ui,sans-serif;background:radial-gradient(900px 500px at 8% -10%,#c7d2fe88,transparent),radial-gradient(800px 500px at 100% 0,#fbcfe888,transparent),radial-gradient(700px 500px at 50% 110%,#bae6fd99,transparent),#f8fafc fixed}
+header{padding:10px 24px;gap:18px;background:rgba(255,255,255,.75);box-shadow:0 4px 24px rgba(15,23,42,.06)}
+.brand{display:flex;align-items:center;gap:12px}.brand img{height:34px}.brand span{display:flex;flex-direction:column;border-left:2px solid #e2e8f0;padding-left:12px;line-height:1.2}.brand b{font-size:15px;color:var(--ink)}.brand small{font-size:11px;color:var(--mut)}
+nav{display:flex;gap:4px}nav a{padding:8px 14px;border-radius:10px;font-size:13px;font-weight:600;color:#475569}nav a:hover{background:#eef2ff;color:var(--p)}
+main{animation:up .45s ease}@keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.card,.tile,dialog{border-radius:22px;background:rgba(255,255,255,.8);box-shadow:0 10px 40px rgba(79,70,229,.08)}
+.hero{border-radius:26px;padding:34px;margin-bottom:22px;color:#fff;background:linear-gradient(120deg,#1e40af,#4f46e5 55%,#7c3aed);box-shadow:0 20px 50px rgba(79,70,229,.3);position:relative;overflow:hidden}.hero:after{content:"";position:absolute;right:-60px;top:-60px;width:260px;height:260px;border-radius:50%;background:rgba(255,255,255,.12)}.hero h1{margin:0 0 6px;font-size:28px}.hero p{margin:0;opacity:.88;max-width:560px}
+.tile{padding:22px}.tile:hover{transform:translateY(-6px);box-shadow:0 20px 50px rgba(79,70,229,.2)}
+.tile>i{width:52px;height:52px;display:grid;place-items:center;font-size:22px;color:#fff;border-radius:16px;background:linear-gradient(135deg,var(--p),var(--p2));box-shadow:0 8px 20px rgba(79,70,229,.35)}
+input:focus,select:focus,textarea:focus{outline:0;border-color:var(--p);box-shadow:0 0 0 4px #4f46e51f}
+.btn{box-shadow:0 6px 16px rgba(79,70,229,.3);transition:.2s}.btn:hover{transform:translateY(-2px)}.btn.g{box-shadow:none}.btn.sm{padding:7px 12px;font-size:12px;border-radius:10px}
+.bd{background:#dbeafe;color:#1d4ed8}.bd.Diterima,.bd.Direview{background:#e0e7ff;color:#4338ca}.bd.Dijadwalkan{background:#ede9fe;color:#6d28d9}.bd.Diproses{background:#fef3c7;color:#b45309}.bd.Menunggu{background:#ffedd5;color:#c2410c}.bd.Disetujui,.bd.Pengadaan{background:#ccfbf1;color:#0f766e}.bd.Selesai{background:#dcfce7;color:#166534}.bd.Ditolak{background:#fee2e2;color:#991b1b}
+.ac{display:flex;gap:8px;align-items:center}.nw{white-space:nowrap}.bar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.st span{border-radius:99px}.st span.d{background:linear-gradient(135deg,var(--p),var(--p2))}
+.lg{border-left:2px solid #c7d2fe;padding-left:16px;margin-left:8px}.lg div{position:relative}.lg div:before{content:"";position:absolute;left:-21px;top:5px;width:8px;height:8px;border-radius:50%;background:var(--p)}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--mut)}tr:hover td{background:#f5f3ff}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}.kp{background:#fff;border-radius:18px;padding:16px;display:flex;flex-direction:column;box-shadow:0 6px 24px rgba(79,70,229,.08)}.kp i{color:var(--p);margin-bottom:6px}.kp b{font-size:26px}.kp span{font-size:12px;color:var(--mut)}
+#pr{display:none}.nostaff a[href="#maintenance"]{display:none}.tabs{display:flex;gap:6px;background:#eef2ff;padding:5px;border-radius:14px;margin:12px 0}.tabs button{flex:1;border:0;padding:9px;border-radius:10px;background:transparent;font:inherit;font-weight:600;color:#475569;cursor:pointer}.tabs button.on{background:#fff;color:var(--p);box-shadow:0 2px 8px rgba(79,70,229,.15)}@media(max-width:700px){nav{display:none}.hero{padding:24px}}
+@media print{@page{size:A4;margin:14mm}body{background:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}body>*:not(#pr){display:none!important}#pr{display:block;font-size:12px;color:#111}
+.ph{display:flex;align-items:center;gap:14px;border-bottom:3px solid #1e40af;padding-bottom:10px;margin-bottom:14px}.ph img{height:46px}.pt{flex:1;display:flex;flex-direction:column}.pt b{font-size:15px;color:#1e40af}.pr2{text-align:right;display:flex;flex-direction:column}.pr2 b{font-size:14px}
+.pn{display:flex;justify-content:space-between;margin-bottom:8px;font-size:14px}.pk{width:100%;margin-bottom:10px}.pk th{width:32%;background:#f1f5f9;text-transform:none;letter-spacing:0;font-size:12px;color:#334155}.pk th,.pk td,.pt2 th,.pt2 td{border:1px solid #cbd5e1;padding:5px 7px}.pt2{width:100%}.pt2 td,.pt2 th{font-size:11px}
+#pr h4{margin:14px 0 6px}#pr .kp{border:1px solid #cbd5e1;box-shadow:none}.sig{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:26px}.sig div{text-align:center}.sig i{display:block;height:64px;border-bottom:1px solid #111}}
+</style></head><body><div id=pr></div>
+<header><a href="#home" class=brand><img src="MSB_Logo.png" alt="PT Murinda Sentra Baja" onerror="this.style.display='none'"><span><b>Maintenance Portal</b><small>Layanan Perawatan Alat &amp; Mesin</small></span></a><nav><a href="#home">Beranda</a><a href="#pantau">Pantau</a><a href="#maintenance">Maintenance</a></nav><span class="sp"></span>
+<span id="dep" class="mut"></span><button id="lo" class="btn g sm" onclick="logout()" style="display:none"><i class="fa-solid fa-right-from-bracket"></i> Keluar</button></header>
+<datalist id="dlk"></datalist><datalist id="dla"></datalist>
+<main id="v"></main><dialog id="dlg"></dialog>
 <script>
-    // URL Deployment Apps Script
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx2nR7Ft3p8rkzPFuWuxzGYfsM3Tgc-O3HoaJMvS7rvpUer-uNiN7fj_7VZOsvWRPGq/exec';
-
-    let currentUserRole = '';
-    let globalData = { permintaan: [], workorder: [] };
-
-    const SignatureMap = {
-        "Quality Control": {
-            spvName: "Heris Sinulingga",
-            spvQR: "https://tinyurl.com/Heris-Sinulingga",
-            mgrName: "ASE Widodo",
-            mgrQR: "https://tinyurl.com/ASE-Widodo"
-        },
-        "Production": {
-            spvName: "menyusul",
-            spvQR: "", 
-            mgrName: "Petrus Suhandoyo",
-            mgrQR: "https://tinyurl.com/Petrus-S"
-        },
-        "Warehouse": {
-            spvName: "menyusul",
-            spvQR: "",
-            mgrName: "Petrus Suhandoyo",
-            mgrQR: "https://tinyurl.com/Petrus-S"
-        }
-    };
-
-    function handleLogin() {
-        const role = document.getElementById('login-role').value;
-        const pass = document.getElementById('login-password').value;
-        
-        const rolePasswords = {
-            "Production": "11111",
-            "Quality Control": "11112",
-            "Warehouse": "11113",
-            "Maintenance": "11114"
-        };
-        
-        if(pass === rolePasswords[role]) {
-            currentUserRole = role;
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('main-app').style.display = 'block';
-            
-            if(role !== 'Maintenance') {
-                document.getElementById('user-info').textContent = `👨‍💼 User: ${role.toUpperCase()}`;
-                document.getElementById('pengguna_dept').value = role; 
-                document.getElementById('tab-wo').style.display = 'none'; 
-                switchTab('permintaan');
-            } else {
-                document.getElementById('user-info').textContent = "🛠️ User: MAINTENANCE";
-                document.getElementById('tab-permintaan').style.display = 'none'; 
-                switchTab('status'); 
-            }
-            fetchDataSistem(); 
-        } else {
-            alert("⚠️ Password yang Anda masukkan salah untuk Role " + role + "!");
-        }
-    }
-
-    document.getElementById("login-password").addEventListener("keypress", function(event) {
-        if (event.key === "Enter") {
-            event.preventDefault();
-            handleLogin();
-        }
-    });
-
-    function switchTab(tabName) {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.form-section').forEach(f => f.classList.remove('active'));
-
-        if (tabName === 'status') {
-            document.getElementById('tab-status').classList.add('active');
-            document.getElementById('section-status').classList.add('active');
-        } else if (tabName === 'permintaan') {
-            document.getElementById('tab-permintaan').classList.add('active');
-            document.getElementById('form-permintaan').classList.add('active');
-        } else if (tabName === 'workorder') {
-            document.getElementById('tab-wo').classList.add('active');
-            document.getElementById('form-workorder').classList.add('active');
-        }
-    }
-
-    function fetchDataSistem() {
-        const tbody = document.getElementById('table-body-status');
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; font-weight:600; padding:40px; color:var(--text-muted);"><div class="spinner"></div> Sinkronisasi Data Dengan Maintenance System...</td></tr>';
-        
-        fetch(SCRIPT_URL)
-        .then(response => response.json())
-        .then(data => {
-            globalData = data; 
-            generateNextID(data.permintaan);     
-            populateStatusTable(data);
-            populateWODropdown(data);
-        })
-        .catch(error => { 
-            console.error('Error fetching data:', error);
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color:var(--secondary-color); font-weight:bold; padding:40px;">⚠️ Gagal memuat data. Pastikan koneksi internet stabil & URL Apps Script benar.</td></tr>';
-        });
-    }
-
-    function generateNextID(permintaanList) {
-        let nextId = "WO-001"; 
-        if (permintaanList && permintaanList.length > 0) {
-            let lastRow = permintaanList[permintaanList.length - 1];
-            let lastId = lastRow.id_wo.toString();
-            let match = lastId.match(/(\D+)(\d+)/); 
-            
-            if (match) {
-                let prefix = match[1]; 
-                let numberLength = match[2].length; 
-                let nextNumber = parseInt(match[2], 10) + 1; 
-                nextId = prefix + nextNumber.toString().padStart(numberLength, '0');
-            }
-        }
-        let idField = document.getElementById('id_wo_permintaan');
-        if(idField) idField.value = nextId;
-    }
-
-    function populateStatusTable(data) {
-        const tbody = document.getElementById('table-body-status');
-        tbody.innerHTML = '';
-        
-        let filteredPermintaan = data.permintaan;
-
-        if (currentUserRole !== 'Maintenance') {
-            filteredPermintaan = filteredPermintaan.filter(req => req.pengguna === currentUserRole);
-        }
-
-        if(filteredPermintaan.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:40px; color:var(--text-muted);">Belum ada data permintaan Work Order untuk departemen ini.</td></tr>';
-            return;
-        }
-
-        let enrichedData = filteredPermintaan.map(req => {
-            let woMatch = data.workorder.find(w => w.id_wo === req.id_wo);
-            let isPending = (!woMatch || !woMatch.status_wo || woMatch.status_wo.trim() === "");
-            
-            let isApproved = (req.diperiksa_oleh && req.diperiksa_oleh.toString().trim() !== "") &&
-                             (req.disetujui_oleh && req.disetujui_oleh.toString().trim() !== "");
-
-            let finalStatus = isPending ? 'Pending' : woMatch.status_wo;
-            if (!isApproved) finalStatus = 'Pending Approval'; 
-
-            let today = new Date(); today.setHours(0,0,0,0);
-            let reqDate = new Date(req.tanggal); reqDate.setHours(0,0,0,0);
-            let ageInDays = Math.floor((today - reqDate) / (1000 * 60 * 60 * 24));
-            if (ageInDays < 0) ageInDays = 0; 
-
-            return { ...req, woMatch: woMatch, finalStatus: finalStatus, ageInDays: ageInDays, isPending: isPending, isApproved: isApproved };
-        });
-
-        enrichedData.sort((a, b) => {
-            if (!a.isApproved && b.isApproved) return -1;
-            if (a.isApproved && !b.isApproved) return 1;
-            if (a.isPending && !b.isPending) return -1;
-            if (!a.isPending && b.isPending) return 1;
-            if (a.isPending && b.isPending) return b.ageInDays - a.ageInDays; 
-            return b.id_wo.localeCompare(a.id_wo); 
-        });
-
-        enrichedData.forEach(item => {
-            let statusBadge = '';
-            
-            if (!item.isApproved) {
-                statusBadge = `<span class="badge" style="background:#fee2e2; color:#991b1b; border: 1px solid #fecaca;">🔒 Pending Approval</span>`;
-            } else if (item.isPending) {
-                let ageText = item.ageInDays > 0 ? ` (${item.ageInDays} Hari)` : ' (Hari ini)';
-                statusBadge = `<span class="badge badge-pending">⏳ Pending Maint${ageText}</span>`;
-            } else {
-                if(item.finalStatus === 'Selesai') {
-                    statusBadge = `<span class="badge badge-selesai">✅ ${item.finalStatus}</span>`;
-                } else {
-                    statusBadge = `<span class="badge badge-progress">🔄 ${item.finalStatus}</span>`;
-                }
-            }
-
-            let tgl = new Date(item.tanggal).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' });
-            let tr = document.createElement('tr');
-            
-            if(item.isPending && item.ageInDays >= 3) {
-                tr.style.backgroundColor = "#fffbeb"; 
-            }
-
-            let btnEksekusi = '';
-            if (currentUserRole === 'Maintenance') {
-                if (!item.isApproved) {
-                    btnEksekusi = `<button class="btn-print" disabled style="background:#cbd5e1; color:#475569; cursor:not-allowed; box-shadow:none;">🔒 Menunggu Approve</button>`;
-                } else if (item.isPending) {
-                    btnEksekusi = `<button class="btn-print btn-process" onclick="bukaFormWO('${item.id_wo}')">📝 Eksekusi</button>`;
-                }
-            }
-
-            tr.innerHTML = `
-                <td><strong>${item.id_wo}</strong></td>
-                <td>${tgl}</td>
-                <td><strong>${item.nama_aset}</strong><br><small style="color:#64748b;">ID: ${item.id_aset}</small></td>
-                <td>${item.dibuat_oleh}<br><small style="color:var(--primary-dark); font-weight:600;">${item.pengguna}</small></td>
-                <td>${statusBadge}</td>
-                <td style="text-align:center;">
-                    <div style="display:flex; gap:8px; justify-content:center;">
-                        <button class="btn-print" onclick="printWO('${item.id_wo}')">🖨️ Cetak</button>
-                        ${btnEksekusi}
-                    </div>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-    }
-
-   function populateWODropdown(data) {
-        const selectWO = document.getElementById('wo-dropdown');
-        selectWO.innerHTML = '<option value="">-- Pilih ID WO --</option>'; 
-        
-        data.permintaan.slice().reverse().forEach(req => {
-            let isApproved = (req.diperiksa_oleh && req.diperiksa_oleh.toString().trim() !== "") &&
-                             (req.disetujui_oleh && req.disetujui_oleh.toString().trim() !== "");
-
-            if (!isApproved) return;
-
-            let woMatch = data.workorder.find(w => w.id_wo === req.id_wo);
-            let isPending = (!woMatch || !woMatch.status_wo || woMatch.status_wo.trim() === "");
-            let tag = isPending ? '(PENDING MAINT)' : `(${woMatch.status_wo})`;
-            
-            let option = document.createElement('option');
-            option.value = req.id_wo;
-            option.textContent = `${req.id_wo} - ${req.nama_aset} ${tag}`;
-            selectWO.appendChild(option);
-        });
-    }
-
-    document.getElementById('wo-dropdown').addEventListener('change', function(e) {
-        let selectedId = e.target.value;
-        let reqData = globalData.permintaan.find(p => p.id_wo === selectedId);
-        
-        if(reqData) {
-            document.getElementById('wo_id_aset').value = reqData.id_aset;
-            document.getElementById('wo_nama_aset').value = reqData.nama_aset;
-            document.getElementById('wo_lokasi').value = reqData.lokasi;
-            document.getElementById('wo_pengguna').value = reqData.pengguna;
-        } else {
-            document.getElementById('wo_id_aset').value = '';
-            document.getElementById('wo_nama_aset').value = '';
-            document.getElementById('wo_lokasi').value = '';
-            document.getElementById('wo_pengguna').value = '';
-        }
-    });
-
-    function bukaFormWO(id_wo) {
-        switchTab('workorder');
-        document.getElementById('wo-dropdown').value = id_wo;
-        document.getElementById('wo-dropdown').dispatchEvent(new Event('change'));
-    }
-
-    function generateQRSrc(dataStr) {
-        if(!dataStr || dataStr === "menyusul") return '';
-        return `https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=${encodeURIComponent(dataStr)}&margin=0`;
-    }
-
-    // Fungsi Generate Random Hash untuk No Auth
-    function getAuthHash(length = 6) {
-        return Math.random().toString(36).substring(2, 2 + length).toUpperCase();
-    }
-
-    function printWO(id_wo) {
-        let pData = globalData.permintaan.find(p => p.id_wo === id_wo);
-        let wData = globalData.workorder.find(w => w.id_wo === id_wo);
-        
-        if(!pData) return alert("Data Permintaan tidak ditemukan!");
-
-        let tglPermintaan = new Date(pData.tanggal).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
-        let isPending = (!wData || !wData.status_wo || wData.status_wo.trim() === "");
-
-        let dept = pData.pengguna;
-        let conf = SignatureMap[dept] || { spvName: "-", spvQR: "", mgrName: "-", mgrQR: "" };
-
-        // --- CEK KOLOM APPROVAL (Dari Spreadsheet) ---
-        let isDiperiksa = pData.diperiksa_oleh && pData.diperiksa_oleh.toString().trim() !== "";
-        let isDisetujui = pData.disetujui_oleh && pData.disetujui_oleh.toString().trim() !== "";
-
-        // Tentukan Nama Signature
-        let spvNameDisplay = isDiperiksa ? pData.diperiksa_oleh : conf.spvName;
-        let mgrNameDisplay = isDisetujui ? pData.disetujui_oleh : conf.mgrName;
-
-        // QR Maker (Pasti muncul karena dia pelapor)
-        let qrMakerSrc = generateQRSrc(pData.dibuat_oleh + " - ID:" + pData.id_wo);
-        let qrMakerHTML = `
-            <div class="digital-sign">
-                <div class="ds-text">Ditandatangani Digital</div>
-                <img src="${qrMakerSrc}" alt="QR Maker">
-                <div class="ds-auth">AUTH: MKR-${pData.id_wo}-${getAuthHash(4)}</div>
-            </div>`;
-
-        // QR SPV / Diperiksa Oleh (Pengecekan isDiperiksa)
-        let qrSpvHTML = '';
-        if (isDiperiksa) {
-            let qrSrc = conf.spvQR ? generateQRSrc(conf.spvQR) : generateQRSrc(spvNameDisplay + " - " + pData.id_wo);
-            qrSpvHTML = `
-            <div class="digital-sign">
-                <div class="ds-text">Ditandatangani Digital</div>
-                <img src="${qrSrc}" alt="QR Spv">
-                <div class="ds-auth">AUTH: SPV-${pData.id_wo}-${getAuthHash(4)}</div>
-            </div>`;
-        } else {
-            qrSpvHTML = `<span class="pending-sign">[ PENDING APPROVAL ]</span>`;
-            spvNameDisplay = `( ${conf.spvName} )`;
-        }
-
-        // QR Manager / Disetujui Oleh (Pengecekan isDisetujui)
-        let qrMgrHTML = '';
-        if (isDisetujui) {
-            let qrSrc = conf.mgrQR ? generateQRSrc(conf.mgrQR) : generateQRSrc(mgrNameDisplay + " - " + pData.id_wo);
-            qrMgrHTML = `
-            <div class="digital-sign">
-                <div class="ds-text">Ditandatangani Digital</div>
-                <img src="${qrSrc}" alt="QR Mgr">
-                <div class="ds-auth">AUTH: MGR-${pData.id_wo}-${getAuthHash(4)}</div>
-            </div>`;
-        } else {
-            qrMgrHTML = `<span class="pending-sign">[ PENDING APPROVAL ]</span>`;
-            mgrNameDisplay = `( ${conf.mgrName} )`;
-        }
-
-        let barcodeSrc = `https://barcode.tec-it.com/barcode.ashx?data=${pData.id_wo}&code=Code128&dpi=96`;
-
-        let woContentHTML = '';
-        if(isPending) {
-            woContentHTML = `
-                <tr><td colspan="4" style="text-align:center; padding: 30px; color: #555; font-style: italic; background:#f9f9f9;">
-                    Laporan Eksekusi Belum Tersedia / Status: PENDING
-                </td></tr>
-            `;
-        } else {
-            let tglMulai = wData.mulai ? new Date(wData.mulai).toLocaleString('id-ID') : '-';
-            let tglSelesai = wData.selesai ? new Date(wData.selesai).toLocaleString('id-ID') : '-';
-            woContentHTML = `
-                <tr>
-                    <td class="col-label">Penyebab Kerusakan</td><td colspan="3" class="col-value">${wData.penyebab || '-'}</td>
-                </tr>
-                <tr>
-                    <td class="col-label">Deskripsi & Sparepart</td><td colspan="3">${wData.deskripsi || '-'}</td>
-                </tr>
-                <tr>
-                    <td class="col-label">Mulai Pengerjaan</td><td>${tglMulai}</td>
-                    <td class="col-label">Selesai Pengerjaan</td><td>${tglSelesai}</td>
-                </tr>
-                <tr>
-                    <td class="col-label">Teknisi Pelaksana</td><td>${wData.teknisi || '-'}</td>
-                    <td class="col-label">Status Akhir</td><td><strong>${wData.status_wo || '-'}</strong></td>
-                </tr>
-                <tr>
-                    <td class="col-label">Saran / Catatan</td><td colspan="3">${wData.catatan || '-'}</td>
-                </tr>
-            `;
-        }
-
-        let printTime = new Date().toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'medium' });
-
-        let printHTML = `
-            <table class="iso-header-table">
-                <tr>
-                    <td width="25%" style="text-align:center;">
-                        <img src="Murinda Logo.png" class="iso-logo" alt="Logo PT MSB">
-                    </td>
-                    <td width="50%">
-                        <h2 class="iso-title">PT MURINDA SENTRA BAJA</h2>
-                        <h3 class="iso-subtitle">WORK ORDER PERBAIKAN MESIN</h3>
-                    </td>
-                    <td width="25%" class="iso-meta">
-                        No. Form &nbsp;&nbsp;&nbsp;: MSB/F-MNT-005<br>
-                        Revisi &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: Rev.00<br>
-                        <div style="text-align:center; margin-top:8px;">
-                            <img src="${barcodeSrc}" style="height:45px;" alt="Barcode ID WO">
-                        </div>
-                    </td>
-                </tr>
-            </table>
-            
-            <table class="print-table">
-                <tr><td colspan="4" class="print-title">A. FORM PERMINTAAN (Diisi Oleh User)</td></tr>
-                <tr>
-                    <td class="col-label">ID WO</td><td class="col-value"><strong>${pData.id_wo}</strong></td>
-                    <td class="col-label">Tanggal Lapor</td><td class="col-value">${tglPermintaan}</td>
-                </tr>
-                <tr>
-                    <td class="col-label">Departemen</td><td>${pData.pengguna}</td>
-                    <td class="col-label">Lokasi Mesin</td><td>${pData.lokasi}</td>
-                </tr>
-                <tr>
-                    <td class="col-label">Nama Aset / Mesin</td><td>${pData.nama_aset}</td>
-                    <td class="col-label">ID Inventaris</td><td>${pData.id_aset}</td>
-                </tr>
-                <tr>
-                    <td class="col-label">Jenis Kerusakan Utama</td><td colspan="3"><strong>${pData.jenis_kerusakan}</strong></td>
-                </tr>
-            </table>
-
-            <table class="print-table">
-                <tr><td colspan="4" class="print-title">B. FORM LAPORAN EKSEKUSI (Diisi Oleh Tim Maintenance)</td></tr>
-                ${woContentHTML}
-            </table>
-            
-            <table class="sig-table">
-                <tr>
-                    <th>Dibuat Oleh</th>
-                    <th>Diperiksa Oleh</th>
-                    <th>Disetujui Oleh</th>
-                    <th>Mengetahui</th>
-                </tr>
-                <tr>
-                    <td><div class="qr-box">${qrMakerHTML}</div></td>
-                    <td><div class="qr-box">${qrSpvHTML}</div></td>
-                    <td><div class="qr-box">${qrMgrHTML}</div></td>
-                    <td><div class="qr-box"><br><br><br></div></td>
-                </tr>
-                <tr>
-                    <td>
-                        <div class="sig-name">${pData.dibuat_oleh}</div>
-                        Pelapor / Operator
-                    </td>
-                    <td>
-                        <div class="sig-name">${spvNameDisplay}</div>
-                        Spv/Coordinator
-                    </td>
-                    <td>
-                        <div class="sig-name">${mgrNameDisplay}</div>
-                        Manager Terkait
-                    </td>
-                    <td>
-                        <div class="sig-name">( ______________________ )</div>
-                        Maint. Manager
-                    </td>
-                </tr>
-            </table>
-
-            <div class="print-footer">
-                <div>Waktu Cetak Sistem: ${printTime}</div>
-                <div>&copy; PT Murinda Sentra Baja - Maintenance System</div>
-            </div>
-        `;
-        
-        document.getElementById('print-area').innerHTML = printHTML;
-        
-        setTimeout(() => {
-            window.print();
-        }, 800);
-    }
-
-    function submitData(e, formName) {
-        e.preventDefault(); 
-        const form = e.target;
-        const submitBtn = form.querySelector('button[type="submit"]');
-        const loadingText = document.getElementById('loading-' + formName);
-        
-        loadingText.style.display = 'block';
-        submitBtn.disabled = true; submitBtn.style.opacity = '0.7';
-        submitBtn.innerHTML = `<div class="spinner"></div> Proses Sinkronisasi...`;
-        
-        const formData = new FormData(form);
-        const data = new URLSearchParams(formData);
-
-        fetch(SCRIPT_URL, { method: 'POST', body: data })
-        .then(response => response.json())
-        .then(result => {
-            loadingText.style.display = 'none';
-            submitBtn.disabled = false; submitBtn.style.opacity = '1';
-            submitBtn.innerHTML = formName === 'Permintaan' ? "Kirim Permintaan WO 🚀" : "Simpan / Update Laporan WO ✔️";
-            
-            if (result.result === 'success') {
-                alert('✅ Dokumen ' + formName + ' berhasil disubmit dan tersimpan di database!');
-                form.reset(); 
-                fetchDataSistem(); 
-                switchTab('status'); 
-            } else {
-                alert('⚠️ Gagal: ' + result.message);
-            }
-        }).catch(err => {
-            loadingText.style.display = 'none';
-            submitBtn.disabled = false; submitBtn.style.opacity = '1';
-            submitBtn.innerHTML = formName === 'Permintaan' ? "Kirim Permintaan WO 🚀" : "Simpan / Update Laporan WO ✔️";
-            
-            alert('⚠️ Terjadi kesalahan koneksi. Pastikan URL Script benar dan Internet stabil.');
-            console.error(err);
-        });
-    }
-</script>
-
-</body>
-</html>
+const API="https://script.google.com/macros/s/AKfycbywoBQoN6hQbdPH5O9MS5wUjNu2M8cx_klVwEXWhXyK42ArW66SkbqY2YpuTvoZL7U/exec";
+const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const PR={t:'s',o:['Rendah','Sedang','Tinggi','Darurat'],r:1};
+const FLOW={perbaikan:['Diajukan','Diterima','Dijadwalkan','Diproses','Menunggu Sparepart','Selesai'],kalibrasi:['Diajukan','Diterima','Dijadwalkan','Diproses','Selesai'],penambahan:['Diajukan','Direview','Disetujui','Pengadaan','Selesai']};
+const AS=[{k:'Kode Aset',t:'aset',r:1,l:'Kode Aset (alat/mesin)'},{k:'Jenis Aset',ro:1},{k:'Nama Aset',ro:1},{k:'Lokasi'}];
+const CT={k:'Catatan Maintenance',t:'ta',w:1};
+const D={
+perbaikan:{sheet:'Order Perbaikan',id:'No Order',t:'Order Perbaikan Alat & Mesin',ic:'fa-screwdriver-wrench',d:'Laporkan kerusakan alat/mesin untuk diperbaiki.',
+ f:[...AS,{k:'Kondisi Aset',t:'s',r:1,o:['Masih Beroperasi (Terbatas)','Berhenti Total','Berbahaya - Jangan Dioperasikan']},{k:'Prioritas',...PR},{k:'Dampak ke Produksi',t:'s',o:['Tidak Ada','Mengganggu','Menghentikan Produksi']},{k:'Foto URL',l:'Link Foto/Video (opsional)'},{k:'Deskripsi Kerusakan',t:'ta',r:1,w:1}],
+ staff:[{k:'Teknisi Ditugaskan'},{k:'Tanggal Jadwal',t:'date'},{k:'Tanggal Selesai',t:'date'},{k:'Tindakan Maintenance',t:'ta',w:1},CT]},
+kalibrasi:{sheet:'Permintaan Kalibrasi',id:'No Permintaan',t:'Permintaan Kalibrasi Alat & Mesin',ic:'fa-gauge-high',d:'Ajukan kalibrasi alat ukur, mesin las, atau mesin produksi.',
+ f:[...AS,{k:'Jenis Kalibrasi',t:'s',r:1,o:['Rutin/Periodik','Setelah Perbaikan','Sebelum Dipakai','Persiapan Audit']},{k:'Parameter Kalibrasi',r:1,l:'Parameter (arus, tegangan, tekanan, dimensi, dll)'},{k:'Standar/Acuan'},{k:'Tanggal Dibutuhkan',t:'date'},{k:'Prioritas',...PR},{k:'Alasan/Keterangan',t:'ta',w:1}],
+ staff:[{k:'Teknisi/Vendor',l:'Teknisi / Vendor Kalibrasi'},{k:'Tanggal Jadwal',t:'date'},{k:'Tanggal Selesai',t:'date'},{k:'Hasil Kalibrasi',t:'s',o:['Lulus','Lulus dengan Catatan','Tidak Lulus']},{k:'Sertifikat URL'},CT]},
+penambahan:{sheet:'Permintaan Penambahan',id:'No Permintaan',t:'Permintaan Penambahan Alat & Mesin',ic:'fa-circle-plus',d:'Usulkan pengadaan alat atau mesin baru.',
+ f:[{k:'Jenis Permintaan',t:'s',r:1,o:['Alat','Mesin']},{k:'Nama Alat/Mesin Diminta',r:1},{k:'Spesifikasi/Kapasitas',t:'ta',r:1,w:1},{k:'Jumlah',t:'number',r:1},{k:'Lokasi Penempatan'},{k:'Tanggal Dibutuhkan',t:'date'},{k:'Estimasi Biaya (Rp)',t:'number'},{k:'Vendor Usulan'},{k:'Prioritas',...PR},{k:'Alasan Kebutuhan',t:'ta',r:1,w:1}],
+ staff:[{k:'Disetujui Oleh'},{k:'Tanggal Selesai',t:'date'},CT]}};
+let DB={aset:[]},AU=JSON.parse(sessionStorage.msbAu||'null'),ME=AU&&AU.Profil,STAFF=AU&&AU.Staff?{u:AU.Username,p:AU.p}:null,R=[],USERS=[],KAR=[],GT="pemohon";
+const api=async b=>(await fetch(API,{method:'POST',body:JSON.stringify(b)})).json();
+const get=async q=>(await fetch(API+'?'+new URLSearchParams(q))).json();
+const loading=()=>$('#v').innerHTML='<p class=mut><i class="fa-solid fa-spinner fa-spin"></i> Memuat Data...</p>';
+const need=()=>'<div class=card><h3>Pilih nama Anda dulu</h3><p>Ketik nama pada kolom di kanan atas agar permintaan tercatat atas nama dan departemen Anda.</p></div>';
+const summ=o=>o['Nama Aset']||o['Nama Alat/Mesin Diminta']||'';
+function who(){$('#dep').innerHTML=AU?`<i class="fa-solid fa-user"></i> ${esc(ME.Nama_Lengkap)}${ME.Departemen?' · '+esc(ME.Departemen):''}`:'';$('#lo').style.display=AU?'':'none';document.body.classList.toggle('nostaff',!STAFF)}
+function logout(){sessionStorage.clear();AU=ME=STAFF=null;route()}
+const aset=()=>$('#dla').innerHTML=DB.aset.map(x=>`<option value="${esc(x.Kode)}">${esc(x.Nama)}</option>`).join('');
+async function gate(m,t){if(t)GT=t;loading();
+ if(!USERS.length){try{USERS=(await get({action:'loginUsers'})).data||[]}catch(x){}}
+ if(!KAR.length){try{KAR=(await get({action:'karyawanUsers'})).data||[]}catch(x){}}
+ const P=GT=='pemohon',L=P?KAR.map(x=>[x.Nama_Lengkap,x.Nama_Lengkap+(x.Departemen?' — '+x.Departemen:'')]):USERS.map(x=>[x.Username,x.Username+(x.Role?' — '+x.Role:'')]);
+ $('#v').innerHTML=`<div class=card style="max-width:440px;margin:40px auto"><div style="text-align:center"><img src="MSB_Logo.png" style="height:44px" alt="" onerror="this.style.display='none'"></div><h2 style="text-align:center;margin-bottom:0">Masuk ke Portal</h2><div class=tabs><button type=button class="${P?'on':''}" onclick="gate('','pemohon')"><i class="fa-solid fa-user"></i> Pemohon</button><button type=button class="${P?'':'on'}" onclick="gate('','maint')"><i class="fa-solid fa-screwdriver-wrench"></i> Maintenance</button></div><p class=mut style="text-align:center">${esc(m||(P?'Karyawan: pilih nama Anda lalu ketik password.':'Tim Maintenance: pilih akun lalu ketik password.'))}</p><form onsubmit="return doGate(event)" style="grid-template-columns:1fr"><label>${P?'Nama Karyawan':'Akun Maintenance'}<select name=u required><option value="">Pilih...</option>${L.map(x=>`<option value="${esc(x[0])}">${esc(x[1])}</option>`).join('')}</select></label><label>Password<input name=p type=password required autocomplete=current-password></label><button class=btn>Masuk</button></form>${L.length?'':'<p class=mut>Belum ada akun. Isi kolom Password di sheet terkait.</p>'}</div>`}
+async function doGate(e){e.preventDefault();const f=e.target,b=f.querySelector('button.btn'),u=f.u.value,p=f.p.value,tipe=GT;b.disabled=true;b.textContent='Memeriksa...';
+ try{const r=await api({action:'portalLogin',tipe,username:u,password:p});if(!r.ok)throw r.error;
+ AU={...r.user,p,tipe};sessionStorage.msbAu=JSON.stringify(AU);ME=AU.Profil;STAFF=AU.Staff?{u:AU.Username,p}:null;DB.aset=r.aset;aset();route()}catch(x){gate(String(x))}return false}
+function route(){who();if(!AU)return gate();const h=location.hash.slice(1)||'home';if(h=='home')home();else if(D[h])form(h);else if(h=='pantau')pantau();else if(h=='maintenance')staff()}
+function home(){$('#v').innerHTML=`<div class=hero><h1>Halo${ME?', '+esc(ME.Nama_Lengkap.split(' ')[0]):''}</h1><p>Ajukan perbaikan, kalibrasi, atau penambahan alat &amp; mesin secara digital, lalu pantau prosesnya langsung.</p></div><h3>Pilih Layanan</h3><div class=tiles>`+Object.keys(D).map(k=>`<a class=tile href="#${k}"><i class="fa-solid ${D[k].ic}"></i><h3>${D[k].t}</h3><span class=mut>${D[k].d}</span></a>`).join('')+'<a class=tile href="#pantau"><i class="fa-solid fa-list-check"></i><h3>Pantau Permintaan Saya</h3><span class=mut>Lihat status & riwayat tindak lanjut.</span></a><a class=tile href="#maintenance"><i class="fa-solid fa-lock"></i><h3>Panel Maintenance</h3><span class=mut>Khusus tim Maintenance.</span></a></div>'}
+function fld(x){const n=`name="${x.k}"`,r=x.r?'required':'';let i;
+ if(x.t=='ta')i=`<textarea ${n} ${r} rows=3></textarea>`;
+ else if(x.t=='s')i=`<select ${n} ${r}><option value="">Pilih...</option>${x.o.map(o=>`<option>${o}</option>`).join('')}</select>`;
+ else if(x.t=='aset')i=`<input ${n} ${r} list=dla autocomplete=off onchange="pick(this)" placeholder="Ketik kode / nama">`;
+ else i=`<input ${n} ${r} type="${x.t||'text'}" ${x.ro?'readonly':''}>`;
+ return `<label class="${x.w?'w':''}">${x.l||x.k}${x.r?' *':''}${i}</label>`}
+function pick(el){const a=DB.aset.find(x=>x.Kode==el.value),f=el.form;if(!a)return;f['Jenis Aset'].value=a.Jenis;f['Nama Aset'].value=a.Nama;f['Lokasi'].value=a.Lokasi}
+function form(k){if(!ME)return $('#v').innerHTML=need();const d=D[k];
+ $('#v').innerHTML=`<div class=card><h2><i class="fa-solid ${d.ic}"></i> ${d.t}</h2><p class=mut>Pemohon: <b>${esc(ME.Nama_Lengkap)}</b> · ${esc(ME.Departemen)}</p><form onsubmit="return send(event,'${k}')">${d.f.map(fld).join('')}<button class=btn>Kirim Permintaan</button></form></div>`}
+async function send(e,k){e.preventDefault();const b=e.target.querySelector('button');b.disabled=true;b.textContent='Mengirim...';
+ const p=Object.fromEntries(new FormData(e.target));Object.assign(p,{Pemohon:ME.Nama_Lengkap,Jabatan:ME.Jabatan,Departemen:ME.Departemen});
+ try{const r=await api({action:'submit',tipe:AU.tipe,username:AU.Username,password:AU.p,sheet:D[k].sheet,payload:p});if(!r.ok)throw r.error;
+ $('#v').innerHTML=`<div class="card ok"><h2><i class="fa-solid fa-circle-check"></i> Permintaan Terkirim</h2><p>Nomor dokumen Anda:</p><div class=no>${esc(r.id)}</div><p class=mut>Tim Maintenance akan menindaklanjuti. Pantau statusnya kapan saja.</p><a class=btn href="#pantau">Pantau Permintaan Saya</a></div>`}
+ catch(x){alert('Gagal mengirim: '+x);b.disabled=false;b.textContent='Kirim Permintaan'}return false}
+function item(k,o,log){const d=D[k],F=FLOW[k],i=F.indexOf(o.Status),id=o[d.id];DOCS[id]={k,o,log};
+ return `<div class=card><div class=row style="justify-content:space-between;flex-wrap:wrap"><b>${esc(id)} · ${d.t}</b><span class=ac><span class="bd ${o.Status}">${esc(o.Status)}</span><button class="btn g sm" onclick="cetakId('${esc(id)}')"><i class="fa-solid fa-print"></i> Cetak</button></span></div>
+ <p>${esc(summ(o))} <span class=mut>· diajukan ${esc(o['Tanggal Diajukan'])} · prioritas ${esc(o.Prioritas)}</span></p>
+ <div class=st>${F.map((s,j)=>`<span class="${j<=i&&o.Status!='Ditolak'?'d':''}">${s}</span>`).join('')}</div>
+ ${o['Teknisi Ditugaskan']||o['Teknisi/Vendor']?`<p class=mut><i class="fa-solid fa-user-gear"></i> ${esc(o['Teknisi Ditugaskan']||o['Teknisi/Vendor'])}${o['Tanggal Jadwal']?' · jadwal '+esc(o['Tanggal Jadwal']):''}</p>`:''}
+ ${o['Catatan Maintenance']?`<p><b>Catatan Maintenance:</b> ${esc(o['Catatan Maintenance'])}</p>`:''}
+ <div class=lg>${log.filter(l=>l['No Dokumen']==id).map(l=>`<div>${esc(l.Waktu)} — <b>${esc(l['Status Baru'])}</b> oleh ${esc(l['Diubah Oleh'])}</div>`).join('')}</div></div>`}
+async function pantau(){if(!ME)return $('#v').innerHTML=need();loading();
+ try{const r=await api({action:'myRequests',tipe:AU.tipe,username:AU.Username,password:AU.p});if(!r.ok)throw r.error;const L=[];
+ for(const k in D)(r.data[D[k].sheet]||[]).forEach(o=>L.push({k,o}));L.sort((a,b)=>String(b.o['Tanggal Diajukan']).localeCompare(String(a.o['Tanggal Diajukan'])));
+ $('#v').innerHTML='<h2>Permintaan Saya</h2>'+(L.length?L.map(x=>item(x.k,x.o,r.log)).join(''):'<p class=mut>Belum ada permintaan.</p>')}
+ catch(x){$('#v').innerHTML='<div class=card>Gagal memuat: '+esc(x)+'</div>'}}
+async function staff(){if(!STAFF)return $('#v').innerHTML='<div class=card><h3>Akses khusus tim Maintenance</h3><p>Akun Anda tidak memiliki peran Maintenance.</p></div>';loading();
+ const r=await api({action:'staffList',username:STAFF.u,password:STAFF.p});
+ if(!r.ok){$('#v').innerHTML='<div class=card>'+esc(r.error)+'</div>';return}
+ R=[];for(const k in D)(r.data[D[k].sheet]||[]).forEach(o=>R.push({k,o}));R.sort((a,b)=>String(b.o['Tanggal Diajukan']).localeCompare(String(a.o['Tanggal Diajukan'])));
+ $('#v').innerHTML=`<div class=bar><h2>Panel Maintenance</h2><span><button class="btn g sm" onclick="laporan()"><i class="fa-solid fa-file-lines"></i> Laporan Rekap</button> <button class="btn g sm" onclick="csv()"><i class="fa-solid fa-file-csv"></i> Export CSV</button></span></div><div id=kpi class=kpis></div><div class=card><div class=row style="flex-wrap:wrap"><input id=q placeholder="Cari no/pemohon/aset..." oninput="draw()" style="flex:1"><select id=fs onchange="draw()"><option value="">Semua Status</option><option>Diajukan</option><option>Diterima</option><option>Dijadwalkan</option><option>Diproses</option><option>Menunggu Sparepart</option><option>Direview</option><option>Disetujui</option><option>Pengadaan</option><option>Selesai</option><option>Ditolak</option></select></div><div class=sc><table id=tb></table></div></div>`;draw()}
+function draw(){kpi();const q=$('#q').value.toLowerCase(),s=$('#fs').value;
+ $('#tb').innerHTML='<tr><th>No</th><th>Jenis</th><th>Pemohon</th><th>Aset / Item</th><th>Prioritas</th><th>Status</th><th></th></tr>'+R.map((x,i)=>({...x,i})).filter(x=>(!s||x.o.Status==s)&&(!q||JSON.stringify(x.o).toLowerCase().includes(q))).map(x=>`<tr><td>${esc(x.o[D[x.k].id])}</td><td>${x.k}</td><td>${esc(x.o.Pemohon)}<br><span class=mut>${esc(x.o.Departemen)}</span></td><td>${esc(summ(x.o))}</td><td>${esc(x.o.Prioritas)}</td><td><span class="bd ${x.o.Status}">${esc(x.o.Status)}</span></td><td class=nw><button class="btn sm" onclick="proses(${x.i})">Proses</button> <button class="btn g sm" onclick="cetakR(${x.i})"><i class="fa-solid fa-print"></i></button></td></tr>`).join('')}
+function proses(i){const {k,o}=R[i],d=D[k];
+ dlg.innerHTML=`<form onsubmit="return save(event,${i})"><h3>${esc(o[d.id])} — ${esc(o.Pemohon)}</h3><p class=mut>${esc(summ(o))}: ${esc(o['Deskripsi Kerusakan']||o['Alasan/Keterangan']||o['Alasan Kebutuhan']||'')}</p>${fld({k:'Status',t:'s',r:1,o:[...FLOW[k],'Ditolak']})}${d.staff.map(fld).join('')}<div class=row><button class=btn>Simpan</button><button type=button class="btn g" onclick="dlg.close()">Batal</button></div></form>`;
+ [...dlg.querySelector('form').elements].forEach(e=>{if(e.name&&o[e.name]!=null)e.value=o[e.name]});dlg.showModal()}
+async function save(e,i){e.preventDefault();const {k,o}=R[i];
+ const r=await api({action:'setStatus',username:STAFF.u,password:STAFF.p,sheet:D[k].sheet,id:o[D[k].id],fields:Object.fromEntries(new FormData(e.target))});
+ if(!r.ok)return alert(r.error);dlg.close();staff();return false}
+const DOCS={},TODAY=new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'});
+const HEAD=t=>`<div class=ph><img src="MSB_Logo.png" alt="" onerror="this.style.display='none'"><div class=pt><b>PT MURINDA SENTRA BAJA</b><span>Departemen Maintenance</span></div><div class=pr2><b>${t}</b><span>Dicetak: ${TODAY}</span></div></div>`;
+const out=h=>{$('#pr').innerHTML=h;setTimeout(()=>print(),200)};
+const cetakId=id=>cetak(DOCS[id].k,DOCS[id].o,DOCS[id].log),cetakR=i=>cetak(R[i].k,R[i].o,[]);
+function cetak(k,o,log){const d=D[k],F=FLOW[k],id=o[d.id],L=log.filter(l=>l['No Dokumen']==id);
+ const rows=Object.keys(o).filter(x=>x!='__row'&&x!=d.id&&o[x]!==''&&o[x]!=null).map(x=>`<tr><th>${esc(x)}</th><td>${esc(o[x])}</td></tr>`).join('');
+ out(`${HEAD(d.t)}<div class=pn><span>No. Dokumen: <b>${esc(id)}</b></span><span class="bd ${o.Status}">${esc(o.Status)}</span></div><table class=pk>${rows}</table><div class=st>${F.map((s,j)=>`<span class="${j<=F.indexOf(o.Status)?'d':''}">${s}</span>`).join('')}</div>${L.length?'<h4>Riwayat Status</h4><table class=pk>'+L.map(l=>`<tr><th>${esc(l.Waktu)}</th><td>${esc(l['Status Baru'])} — ${esc(l['Diubah Oleh'])}</td></tr>`).join('')+'</table>':''}<div class=sig>${['Pemohon','Atasan / Kepala Dept.','Maintenance','Disetujui'].map(s=>`<div>${s}<i></i></div>`).join('')}</div>`)}
+const open_=x=>!['Selesai','Ditolak'].includes(x.o.Status);
+function flt(){const q=($('#q')||{value:''}).value.toLowerCase(),s=($('#fs')||{value:''}).value;return R.filter(x=>(!s||x.o.Status==s)&&(!q||JSON.stringify(x.o).toLowerCase().includes(q)))}
+const kpiH=a=>[['Total Permintaan',a.length,'fa-inbox'],['Sedang Berjalan',a.filter(open_).length,'fa-gears'],['Selesai',a.filter(x=>x.o.Status=='Selesai').length,'fa-circle-check'],['Darurat Terbuka',a.filter(x=>open_(x)&&x.o.Prioritas=='Darurat').length,'fa-triangle-exclamation']].map(x=>`<div class=kp><i class="fa-solid ${x[2]}"></i><b>${x[1]}</b><span>${x[0]}</span></div>`).join('');
+const kpi=()=>{$('#kpi').innerHTML=kpiH(R)};
+function laporan(){const a=flt();
+ const per=Object.keys(D).map(k=>{const b=a.filter(x=>x.k==k);return `<tr><td>${D[k].t}</td><td>${b.length}</td><td>${b.filter(open_).length}</td><td>${b.filter(x=>x.o.Status=='Selesai').length}</td><td>${b.filter(x=>x.o.Status=='Ditolak').length}</td></tr>`}).join('');
+ out(`${HEAD('Laporan Rekap Permintaan Maintenance')}<div class=kpis>${kpiH(a)}</div><h4>Ringkasan per Jenis Dokumen</h4><table class=pt2><tr><th>Jenis Dokumen</th><th>Total</th><th>Berjalan</th><th>Selesai</th><th>Ditolak</th></tr>${per}</table><h4>Rincian Permintaan</h4><table class=pt2><tr><th>No Dokumen</th><th>Tanggal</th><th>Pemohon</th><th>Dept.</th><th>Aset / Item</th><th>Prioritas</th><th>Status</th></tr>${a.map(x=>`<tr><td>${esc(x.o[D[x.k].id])}</td><td>${esc(x.o['Tanggal Diajukan'])}</td><td>${esc(x.o.Pemohon)}</td><td>${esc(x.o.Departemen)}</td><td>${esc(summ(x.o))}</td><td>${esc(x.o.Prioritas)}</td><td>${esc(x.o.Status)}</td></tr>`).join('')}</table>`)}
+function csv(){const h=['No Dokumen','Jenis','Tanggal','Pemohon','Departemen','Aset / Item','Prioritas','Status','Teknisi/Penyetuju','Tanggal Selesai'];
+ const t=[h,...flt().map(x=>[x.o[D[x.k].id],D[x.k].t,x.o['Tanggal Diajukan'],x.o.Pemohon,x.o.Departemen,summ(x.o),x.o.Prioritas,x.o.Status,x.o['Teknisi Ditugaskan']||x.o['Teknisi/Vendor']||x.o['Disetujui Oleh']||'',x.o['Tanggal Selesai']||''])].map(l=>l.map(c=>'"'+String(c??'').replace(/"/g,'""')+'"').join(',')).join('\n');
+ Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob(['\ufeff'+t],{type:'text/csv'})),download:'Rekap_Maintenance.csv'}).click()}
+window.onhashchange=route;
+(async()=>{if(AU){loading();try{const r=await api({action:'portalLogin',tipe:AU.tipe,username:AU.Username,password:AU.p});if(!r.ok)throw r.error;DB.aset=r.aset;aset()}catch(x){AU=ME=STAFF=null;sessionStorage.clear()}}route()})();
+</script></body></html>
